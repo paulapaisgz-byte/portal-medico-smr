@@ -1,9 +1,9 @@
 <<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8">                      <!--Interfaz de la web-->
     <title>Pedir Cita - Portal Médico</title>
-    <link rel="stylesheet" href="css/estilos.css">
+    <link rel="stylesheet" href="edit.css">    <!--SIMPLE AÑADIDO DE LINK PARA CSS-->
 </head>
 <body>
     <h1>PEDIR CITA</h1>
@@ -44,5 +44,6 @@
         <br><br>
         <button type="submit">CONFIRMAR CITA</button>
     </form>
+    
 </body>
 </html>
