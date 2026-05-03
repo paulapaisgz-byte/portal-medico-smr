@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> <!--PRIMERA ENTRADA (LOGIN DE USUARIOS)-->
 <html lang="es">
 <head><meta charset="UTF-8"><title>Login</title></head>
 <body>

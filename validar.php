@@ -1,9 +1,9 @@
 
 <?php
 session_start();
-include 'funciones/conexion.php';
+include ("conexion.php");
 
-$dni = $_POST['dni'];
+$dni =$_POST ['dni'];
 $clave = $_POST['clave'];
 
 // Buscamos al usuario
