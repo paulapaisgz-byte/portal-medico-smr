@@ -11,7 +11,7 @@ $conexion = mysqli_connect($servidor, $usuario, $password, $base_datos);
 
 // Comprobamos si podemos accerder
 if ($conexion) {
-   // echo "¡Conexión exitosa a la base de datos!";
+   //echo "¡Conexión a la base de datos portal_medico_db!";
 } else {
     echo "La conexión no se ha podido establecer, parece que algo ha fallado";
 }

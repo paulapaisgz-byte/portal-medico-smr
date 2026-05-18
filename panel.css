@@ -141,3 +141,7 @@ a.ex1:hover, a.ex1:active {
     text-align: center; 
     color: gray;
 }
+.boton-cerrar-sesion {
+    color: red; 
+    font-weight: bold;
+}

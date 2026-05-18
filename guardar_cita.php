@@ -4,12 +4,12 @@ session_start();  // 1. Incluimos la conexión que hiciste antes
 include("conexion_bd.php");
 
 // 2. Recogemos los datos del formulario
-$medico    = $_POST['nombre_medico'];
-$dni       = $_POST['dni_manual'];
-$fecha     = $_POST['fecha'];
-$hora      = $_POST['hora'];
-$nombres   = $_POST['nombres_manual'];
-$apellidos = $_POST['apellidos_manual'];
+$medico    = $_POST['nombre_medico'] ?? '';
+$dni       = $_POST['dni_manual'] ?? $_POST['dni'] ?? '';
+$fecha     = $_POST['fecha'] ?? '';
+$hora      = $_POST['hora'] ?? '';
+$nombres   = $_POST['nombres_manual'] ?? $_POST['nombres'] ?? '';
+$apellidos = $_POST['apellidos_manual'] ?? $_POST['apellidos'] ?? '';
 
 // --- TRUCO DE CONTROL DE RELACIONES ---
 // Buscamos si el DNI escrito ya tiene un ID numérico en la tabla 'usuarios'

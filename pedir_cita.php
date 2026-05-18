@@ -1,36 +1,38 @@
 <!--NUMERO 5-->
+<?php
+session_start();
+include("conexion_bd.php"); 
+if (!isset($_SESSION['usuario'])) { 
+    header("Location: iniciar_sesion.php"); 
+    exit(); 
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">                      <!--Interfaz de la webj-->
+    <meta charset="UTF-8">
     <title>Pedir Cita - Portal Médico</title>
-       <!--SIMPLE AÑADIDO DE LINK PARA CSS-->
 </head>
 <body>
-    <h1>PEDIR CITA</h1>
+
+    <h1>Panel de Pacientes: Bienvenido <?php echo $_SESSION['usuario']; ?></h1>
     
-    <form action="guardar_cita.php" method="POST">
+    <h2>PEDIR CITA</h2>
+    <form action="guardar_citapaciente.php" method="POST">
         
         <p>1. Selecciona el Servicio y Médico:</p>
-<select name="medico" required>
-    <option value="">-- Seleccione una opción --</option>
-    
-    <optgroup label="Medicina General">
-        <option value="Dr. Remars - Medicina General">Dr. Remars</option>
-        <option value="Dra. García - Medicina General">Dra. García</option>
-    </optgroup>
-
-    <optgroup label="Pediatría">
-        <option value="Dra. Doramas - Pediatría">Dra. Doramas</option>
-        <option value="Dr. Cietora - Pediatría">Dr. Cietora</option>
-    </optgroup>
-
-    <optgroup label="Enfermería">
-        <option value="DUE Ana Pérez - Curas">DUE Ana Pérez (Curas)</option>
-        <option value="DUE Juan López - Vacunación">DUE Juan López (Vacunas)</option>
-    </optgroup>
-</select>
-
+        <select name="nombre_medico" required class="input-panel">
+            <option value="">--Seleccione un profesional--</option>
+            <?php
+            $sql_profesionales = "SELECT `nombre` FROM `profesionales`";
+            $res_profesionales = mysqli_query($conexion, $sql_profesionales);
+            
+            // Recorremos la base de datos fila por fila creando un <option> para cada médico
+            while ($prof = mysqli_fetch_assoc($res_profesionales)){
+                echo "<option value='".$prof["nombre"]."'>".$prof["nombre"]."</option>";
+            }
+            ?>
+        </select>
         <p>2. Seleccionar Fecha</p>
         <input type="date" name="fecha" required>
 
@@ -44,6 +46,7 @@
 
         <br><br>
         <button type="submit">CONFIRMAR CITA</button>
+        <a href="cerrar_sesion.php" style="text-decoration: none; color: black">CERRAR SESION</a>
     </form>
     
 </body>

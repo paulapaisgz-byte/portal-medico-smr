@@ -235,5 +235,6 @@ if (!isset($_SESSION["usuario"])) {
             } 
         }
     </script>
+    <a href="cerrar_sesionpro.php" class="boton-cerrar-sesion">Cerrar sesion</a>
 </body>
 </html>
