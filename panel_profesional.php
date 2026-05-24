@@ -11,24 +11,22 @@ if (!isset($_SESSION["usuario"])) {
 <head>
     <meta charset="UTF-8">
     <title>Panel de Gestión Médica</title>
-    <link rel="stylesheet" href="panel.css" type=text/css>
+    <link rel="stylesheet" href="panel.css" type="text/css">
 </head>
 <body>
 
     <h1>Panel de Administración: Bienvenido <?php echo $_SESSION['usuario']; ?></h1>
     
     <div class="menu-gestion" id="panel">
-
         <ul>
-            <li><a class="ex1 flip" onclick="togglePanel('contenido-citas')" href="javascript:void(0)">Modificar/Eliminar citas</a></li>
+            <li><a class="ex1 flip" onclick="togglePanel('contenido-citas')" href="javascript:void(0)">Consultar citas</a></li>
             <li><a class="ex1 flip" onclick="togglePanel('contenido-nueva')" href="javascript:void(0)">Nueva cita</a></li>
-            <li><a class="ex1 flip" onclick="togglePanel('contenido-profesional')" href="javascrip:void(0)">Profesionales</a></li>
+            <li><a class="ex1 flip" onclick="togglePanel('contenido-profesional')" href="javascript:void(0)">Profesionales</a></li>
             <li><a class="ex1 flip" onclick="togglePanel('contenido-usuario')" href="javascript:void(0)">Usuario</a></li>
             <li><a class="ex1" href="profesional.php">Cerrar sesión</a></li>
         </ul>
     </div>
 
-                                                    <!-- 1. PANEL DE GESTIÓN DE CITAS -->
     <div id="contenido-citas" class="panel-desplegable" style="display: none;">
         <h2>Gestion de citas</h2>
         <table border="1" class="tabla-panel">
@@ -45,66 +43,73 @@ if (!isset($_SESSION["usuario"])) {
             </thead>
             <tbody>
                 <?php
-                $sql = "SELECT `ids`, `nombre_medico`, `fecha`, `hora`, `nombres`, `apellidos`, usuarios.`dni` AS dni_real  FROM `citas` INNER JOIN `usuarios` ON citas.`DNI` = usuarios.`id`";
-                $resultado = mysqli_query($conexion,$sql);
-                while ($fila = mysqli_fetch_assoc($resultado)){
-                    echo "<tr>";
-                    echo "<td>" . $fila["nombre_medico"] . "</td>";
-                    echo "<td>" . $fila["fecha"] . "</td>";
-                    echo "<td>" . $fila["hora"] . "</td>";
-                    echo "<td>" . $fila["dni_real"] . "</td>";
-                    echo "<td>" . $fila["nombres"] . "</td>";
-                    echo "<td>" . $fila["apellidos"] . "</td>";
-                    echo "<td class='centrado'>";
-                    echo "<a href='editar_cita.php?id=" . $fila['ids'] . "' class='enlace-modificar'> Modificar </a> | ";
-                    echo "<a href='eliminar_cita.php?id=" . $fila['ids'] . "' class='enlace-eliminar' onclick='return confirm(\"¿Seguro?\")'> Eliminar </a>";
-                    echo "</td>";
-                    echo "</tr>";
+                // Modificado con INNER JOIN dinámicos para extraer los datos reales desde los IDs de la tabla citas
+                $sql = "SELECT c.`ids`, c.`fecha`, c.`hora`, 
+                               u.`dni` AS dni_real, u.`nombre` AS nombre_usuario, u.`apellido` AS apellido_usuario,
+                               p.`nombre` AS nombre_medico, p.`apellido` AS apellido_medico
+                        FROM `citas` c
+                        INNER JOIN `usuarios` u ON c.`usuario_id` = u.`id`
+                        INNER JOIN `profesionales` p ON c.`profesional_id` = p.`id`";
+                
+                $resultado = mysqli_query($conexion, $sql);
+                if ($resultado && mysqli_num_rows($resultado) > 0) {
+                    while ($fila = mysqli_fetch_assoc($resultado)){
+                        echo "<tr>";
+                        echo "<td>" . htmlspecialchars($fila["nombre_medico"]) . " " . htmlspecialchars($fila["apellido_medico"]) . "</td>";
+                        echo "<td>" . $fila["fecha"] . "</td>";
+                        echo "<td>" . $fila["hora"] . "</td>";
+                        echo "<td>" . htmlspecialchars($fila["dni_real"]) . "</td>";
+                        echo "<td>" . htmlspecialchars($fila["nombre_usuario"]) . "</td>";
+                        echo "<td>" . htmlspecialchars($fila["apellido_usuario"]) . "</td>";
+                        echo "<td class='centrado'>";
+                        echo "<a href='editar_cita.php?id=" . $fila['ids'] . "' class='enlace-modificar'> Modificar </a> | ";
+                        echo "<a href='eliminar_cita.php?id=" . $fila['ids'] . "' class='enlace-eliminar' onclick='return confirm(\"¿Seguro?\")'> Eliminar </a>";
+                        echo "</td>";
+                        echo "</tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='7' class='texto-vacio'>No hay citas programadas de momento.</td></tr>";
                 }
                 ?>
             </tbody>
         </table>
     </div>
 
-                                                         <!-- 2. PANEL DE NUEVA CITA -->
-<div id="contenido-nueva" class="panel-desplegable" style="display: none;">
+    <div id="contenido-nueva" class="panel-desplegable" style="display: none;">
         <h2>Agendar nueva cita</h2>
         <form action="guardar_cita.php" method="POST" class="formulario-panel">
             
-            <label>Seleccionar Profesional:</label><br>
-            <select name="nombre_medico" required class="input-panel">
-                <option value="">--Seleccione un profesional--</option>
+            <label>Seleccionar Especialidad:</label><br>
+            <select id="select-especialidad" required class="input-panel">
+                <option value="">--Seleccione una especialidad--</option>
                 <?php
-                // Traemos los profesionales operativos de tu tabla
-                $sql_profesionales = "SELECT `nombre` FROM `profesionales`";
-                $res_profesionales = mysqli_query($conexion, $sql_profesionales);
-                while ($prof = mysqli_fetch_assoc($res_profesionales)){
-                    echo "<option value='".$prof["nombre"]."'>".$prof["nombre"]."</option>";
+                $query_esp = "SELECT `id`, `nombre_especialidades` FROM `especialidades`";
+                $res_esp = mysqli_query($conexion, $query_esp);
+                while($esp = mysqli_fetch_assoc($res_esp)) {
+                    echo "<option value='".$esp['id']."'>".htmlspecialchars($esp['nombre_especialidades'])."</option>";
                 }
                 ?>
             </select>
 
+            <br><label>Seleccionar Profesional:</label><br>
+            <select id="select-profesional" name="profesional_id" required class="input-panel" disabled>
+                <option value="">--Seleccione primero una especialidad--</option>
+            </select>
+
             <br><label for="dni_paciente">DNI del Paciente:</label><br>
-                <input type="text" id="dni_paciente" name="dni_manual" required placeholder="Ej. 12345678A" class="input-panel">
-
-            <br><label for="nombre_paciente">Nombre del Paciente:</label><br>
-                <input type="text" id="nombre_paciente" name="nombres_manual" required placeholder="Ej. Juan" class="input-panel">
-
-            <br><label for="apellido_paciente">Apellido del Paciente:</label><br>
-                <input type="text" id="apellido_paciente" name="apellidos_manual" required placeholder="Ej. Pérez" class="input-panel">
+            <input type="text" id="dni_paciente" name="dni_paciente" required placeholder="Ej. 12345678A" class="input-panel">
 
             <br><label for="campo_fecha">Fecha:</label><br>
-                <input type="date" id="campo_fecha" name="fecha" required class="input-panel">
+            <input type="date" id="campo_fecha" name="fecha" required class="input-panel">
             
             <br><label for="campo_hora">Hora:</label><br>
-                <input type="time" id="campo_hora" name="hora" required class="input-panel">
+            <input type="time" id="campo_hora" name="hora" required class="input-panel">
             
             <br><br>
             <input type="submit" value="Registrar cita" class="boton-panel">
         </form>
     </div>
     
-                                                         <!-- 3. PANEL DE GESTIÓN DE PROFESIONALES -->
     <div id="contenido-profesional" class="panel-desplegable" style="display: none;">
         <h2>Gestión de Profesionales</h2>
         
@@ -116,55 +121,140 @@ if (!isset($_SESSION["usuario"])) {
                 <label for="apellido_profesional">Apellido:</label><br>
                 <input type="text" id="apellido_profesional" name="apellido_profesional" required placeholder="Ej. Jimenez" class="input-panel">
                 <label for="clave_profesional">Clave:</label><br>
-                <input type="text" id="clave_profesional" name="clave_profesional" required placeholder="Solo numeros" class="input-panel">
-                <br>
+                <input type="text" id="clave_profesional" name="clave_profesional" required placeholder="Solo numeros" class="input-panel"><br>
+                <label for="especialidad_profesional">Especialidad: </label><br>
+                <input type="text" id="especialidad_profesional" name="especialidad_profesional" list="lista-especialidades" required placeholder="Selecciona o escribe una nueva" class="input-panel" autocomplete="off">
+
+                <datalist id="lista-especialidades">
+                    <?php
+                    $sql_esp = "SELECT `nombre_especialidades` FROM `especialidades`";
+                    $resultado_esp = mysqli_query($conexion, $sql_esp);
+                    if ($resultado_esp && mysqli_num_rows($resultado_esp) > 0) {
+                        while ($fila_esp = mysqli_fetch_assoc($resultado_esp)) {
+                            echo "<option value='" . htmlspecialchars($fila_esp['nombre_especialidades']) . "'>";
+                        }
+                    }
+                    ?>
+                </datalist><br>
                 <input type="submit" value="Registrar" class="boton-panel ancho-total">
             </form>
         </div>
 
         <hr class="linea-separadora">
 
-        <h3>Listado de Profesionales Activos</h3>               <!--Profesionales activos-->
-        <table border="1" class="tabla-panel">
+        <h3>Listado de Profesionales Activos</h3>
+        <table border="1" class="tabla-panel" id="tabla-profesionales">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Nombre del Profesional</th>
                     <th>Apellido</th>
+                    <th>Especialidad</th>
                     <th>clave</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 <?php
-                $sql_prof = "SELECT `id`, `nombre`, `apellido`, `clave` FROM `profesionales`";
+                $sql_prof = "SELECT p.`id`, p.`nombre`, p.`apellido`, p.`clave`, p.`especialidad_id`, e.`nombre_especialidades` 
+                             FROM `profesionales` p
+                             INNER JOIN `especialidades` e ON p.`especialidad_id` = e.`id`";
                 $resultado_prof = mysqli_query($conexion, $sql_prof);
 
-                if (mysqli_num_rows($resultado_prof) > 0) {
+                $especialidades_lista = [];
+                $sql_esp = "SELECT `id`, `nombre_especialidades` FROM `especialidades`";
+                $res_esp = mysqli_query($conexion, $sql_esp);
+                while($esp = mysqli_fetch_assoc($res_esp)) {
+                    $especialidades_lista[] = $esp;
+                }
+
+                if ($resultado_prof && mysqli_num_rows($resultado_prof) > 0) {
                     while ($fila_prof = mysqli_fetch_assoc($resultado_prof)) {
-                        echo "<tr>";
-                        echo "<td>" . $fila_prof["id"] . "</td>";
-                        echo "<td>" . $fila_prof["nombre"] . "</td>";
-                        echo "<td>" . $fila_prof["apellido"] . "</td>";
-                        echo "<td>" . $fila_prof["clave"] . "</td>";
+                        $id = $fila_prof["id"];
+                        echo "<tr id='fila-$id'>";
+                        echo "<td>" . $id . "</td>";
+                        echo "<td class='celda-nombre'><span class='txt'>" . htmlspecialchars($fila_prof["nombre"]) . "</span><input type='text' class='inp input-panel' value='" . htmlspecialchars($fila_prof["nombre"]) . "' style='display:none;'></td>";
+                        echo "<td class='celda-apellido'><span class='txt'>" . htmlspecialchars($fila_prof["apellido"]) . "</span><input type='text' class='inp input-panel' value='" . htmlspecialchars($fila_prof["apellido"]) . "' style='display:none;'></td>";
+                        
+                        echo "<td class='celda-especialidad'>";
+                        echo "<span class='txt'>" . htmlspecialchars($fila_prof["nombre_especialidades"]) . "</span>";
+                        echo "<input type='text' class='inp input-panel' list='lista-especialidades-$id' value='" . htmlspecialchars($fila_prof["nombre_especialidades"]) . "' style='display:none;'>";
+
+                        echo "<datalist id='lista-especialidades-$id'>";
+                        foreach($especialidades_lista as $opcion) {
+                            echo "<option value='" . htmlspecialchars($opcion['nombre_especialidades']) . "'>";
+                        }
+                        echo "</datalist>";
+                        echo "</td>";
+                        echo "<td class='celda-clave'><span class='txt'>" . htmlspecialchars($fila_prof["clave"]) . "</span><input type='text' class='inp input-panel' value='" . htmlspecialchars($fila_prof["clave"]) . "' style='display:none;'></td>";
+                        
                         echo "<td class='centrado'>";
-                        echo "<a href='eliminar_profesional.php?id=" . $fila_prof['id'] . "' class='enlace-eliminar' onclick='return confirm(\"¿Estás seguro de que deseas eliminar a este profesional?\")'> Eliminar </a>";
+                        echo "<div class='modo-vista'>";
+                        echo "<button type='button' class='boton-editar' onclick='activarEdicion($id)' style='background:#2196F3; color:white; border:none; padding:5px 10px; margin-right:5px; cursor:pointer; border-radius:3px;'>Modificar</button>";
+                        echo "<a href='eliminar_profesional.php?id=$id' class='enlace-eliminar' onclick='return confirm(\"¿Estás seguro de que deseas eliminar a este profesional?\")'> Eliminar </a>";
+                        echo "</div>";
+                
+                        echo "<div class='modo-editar' style='display:none;'>";
+                        echo "<button type='button' onclick='guardarEdicion($id)' style='background:#4CAF50; color:white; border:none; padding:5px 10px; margin-right:5px; cursor:pointer; border-radius:3px;'>Guardar</button>";
+                        echo "<button type='button' onclick='cancelarEdicion($id)' style='background:#f44336; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;'>Cancelar</button>";
+                        echo "</div>";
                         echo "</td>";
                         echo "</tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='3' class='texto-vacio'>No hay profesionales registrados.</td></tr>";
+                    echo "<tr><td colspan='6' class='texto-vacio'>No hay profesionales registrados.</td></tr>";
                 }
                 ?>
             </tbody>
         </table>
+
+        <script>
+            function activarEdicion(id) {
+                let fila = document.getElementById('fila-' + id);
+                fila.querySelectorAll('.txt').forEach(el => el.style.display = 'none');
+                fila.querySelectorAll('.inp').forEach(el => el.style.display = 'block');
+                fila.querySelector('.modo-vista').style.display = 'none';
+                fila.querySelector('.modo-editar').style.display = 'block';
+            }
+            function cancelarEdicion(id) {
+                let fila = document.getElementById('fila-' + id);
+                fila.querySelectorAll('.txt').forEach(el => el.style.display = 'block');
+                fila.querySelectorAll('.inp').forEach(el => el.style.display = 'none');
+                fila.querySelector('.modo-vista').style.display = 'block';
+                fila.querySelector('.modo-editar').style.display = 'none';
+            }
+            function guardarEdicion(id) {
+                let fila = document.getElementById('fila-' + id);
+                let nuevoNombre = fila.querySelector('.celda-nombre .inp').value;
+                let nuevoApellido = fila.querySelector('.celda-apellido .inp').value;
+                let nuevaEspecialidadId = fila.querySelector('.celda-especialidad .inp').value;
+                let nuevaClave = fila.querySelector('.celda-clave .inp').value;
+                let datos = new FormData();
+                datos.append('id', id);
+                datos.append('nombre', nuevoNombre);
+                datos.append('apellido', nuevoApellido);
+                datos.append('especialidad_id', nuevaEspecialidadId);
+                datos.append('clave', nuevaClave);
+
+                fetch('modificar_profesional.php', {
+                    method: 'POST',
+                    body: datos
+                })
+                .then(res => res.text())
+                .then(data => {
+                    if(data.trim() === "success") {
+                        window.location.reload();
+                    } else {
+                        alert("Error al actualizar los datos: " + data);
+                    }
+                });
+            }
+        </script>
     </div>
     
-                                                    <!-- 4. PANEL DE GESTIÓN DE USUARIOS (PACIENTES) -->
-    <div id="contenido-usuario" class="panel-desplegable" style="display: none;">
+<div id="contenido-usuario" class="panel-desplegable" style="display: none;">
         <h2>Gestión de Usuarios / Pacientes</h2>
         
-                                                    <!-- Formulario para dar de alta a usuarios-->
         <div class="bloque-formulario">
             <form action="guardar_usuario.php" method="POST" class="formulario-panel ancho-fijo">
                 <label for="dni_usuario">DNI:</label><br>
@@ -182,9 +272,8 @@ if (!isset($_SESSION["usuario"])) {
 
         <hr class="linea-separadora">
 
-                                                        <!-- Tabla para listar y dar de baja -->
         <h3>Listado de Usuarios Registrados</h3>
-        <table border="1" class="tabla-panel">
+        <table border="1" class="tabla-panel" id="tabla-usuarios">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -196,45 +285,140 @@ if (!isset($_SESSION["usuario"])) {
                 </tr>
             </thead>
             <tbody>
-                <?php
-                             // Hacemos la consulta a la tabla 'usuarios' (el ID es autoincrement, no hace falta pedirlo en el form)
+<?php
                 $sql_user = "SELECT `id`, `dni`, `clave`, `nombre`, `apellido` FROM `usuarios`";
                 $resultado_user = mysqli_query($conexion, $sql_user);
 
-                if (mysqli_num_rows($resultado_user) > 0) {
+                if ($resultado_user && mysqli_num_rows($resultado_user) > 0) {
                     while ($fila_user = mysqli_fetch_assoc($resultado_user)) {
-                        echo "<tr>";
-                        echo "<td>" . $fila_user["id"] . "</td>";
-                        echo "<td>" . $fila_user["dni"] . "</td>";
-                        echo "<td>" . $fila_user["clave"] . "</td>";
-                        echo "<td>" . $fila_user["nombre"] . "</td>";
-                        echo "<td>" . $fila_user["apellido"] . "</td>";
+                        $id_u = $fila_user["id"];
+                        echo "<tr id='fila-user-$id_u'>";
+                        echo "<td>" . $id_u . "</td>";
+                        echo "<td class='celda-user-dni'><span class='txt-u'>" . htmlspecialchars($fila_user["dni"]) . "</span><input type='text' class='inp-u input-panel' value='" . htmlspecialchars($fila_user["dni"]) . "' style='display:none;'></td>";
+                        echo "<td class='celda-user-clave'><span class='txt-u'>" . htmlspecialchars($fila_user["clave"]) . "</span><input type='text' class='inp-u input-panel' value='" . htmlspecialchars($fila_user["clave"]) . "' style='display:none;'></td>";
+                        echo "<td class='celda-user-nombre'><span class='txt-u'>" . htmlspecialchars($fila_user["nombre"]) . "</span><input type='text' class='inp-u input-panel' value='" . htmlspecialchars($fila_user["nombre"]) . "' style='display:none;'></td>";
+                        echo "<td class='celda-user-apellido'><span class='txt-u'>" . htmlspecialchars($fila_user["apellido"]) . "</span><input type='text' class='inp-u input-panel' value='" . htmlspecialchars($fila_user["apellido"]) . "' style='display:none;'></td>";
+                        
                         echo "<td class='centrado'>";
-                        // Enlace para dar de baja (eliminar) pasando el ID por URL
-                        echo "<a href='eliminar_usuario.php?id=" . $fila_user['id'] . "' class='enlace-eliminar' onclick='return confirm(\"¿Estás seguro de que deseas dar de baja a este usuario?\")'> Eliminar </a>";
+                        echo "<div class='modo-vista-user'>";
+                        echo "<button type='button' class='boton-editar' onclick='activarEdicionUser($id_u)' style='background:#2196F3; color:white; border:none; padding:5px 10px; margin-right:5px; cursor:pointer; border-radius:3px;'>Modificar</button>";
+                        echo "<a href='eliminar_usuario.php?id=$id_u' class='enlace-eliminar' onclick='return confirm(\"¿Estás seguro de que deseas dar de baja a este usuario?\")'> Eliminar </a>";
+                        echo "</div>";
+                
+                        echo "<div class='modo-editar-user' style='display:none;'>";
+                        echo "<button type='button' onclick='guardarEdicionUser($id_u)' style='background:#4CAF50; color:white; border:none; padding:5px 10px; margin-right:5px; cursor:pointer; border-radius:3px;'>Guardar</button>";
+                        echo "<button type='button' onclick='cancelarEdicionUser($id_u)' style='background:#f44336; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:3px;'>Cancelar</button>";
+                        echo "</div>";
                         echo "</td>";
                         echo "</tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='4' class='texto-vacio'>No hay usuarios registrados.</td></tr>";
+                    echo "<tr><td colspan='6' class='texto-vacio'>No hay usuarios registrados.</td></tr>";
                 }
                 ?>
             </tbody>
         </table>
-    </div>
-    <!-- SCRIPT (Nota: Mantenemos el style='display: none;' en las declaraciones de las etiquetas div de los paneles principales arriba para asegurar que arranquen ocultas por defecto antes de que actúe JS) -->
-    <script>
-        function togglePanel(id){
-            var paneles = document.getElementsByClassName("panel-desplegable");
-            for (var i = 0; i < paneles.length; i++) {
-                paneles[i].style.display = "none";
+
+        <script>
+            function activarEdicionUser(id) {
+                let fila = document.getElementById('fila-user-' + id);
+                fila.querySelectorAll('.txt-u').forEach(el => el.style.display = 'none');
+                fila.querySelectorAll('.inp-u').forEach(el => el.style.display = 'block');
+                fila.querySelector('.modo-vista-user').style.display = 'none';
+                fila.querySelector('.modo-editar-user').style.display = 'block';
             }
-            var x = document.getElementById(id);
-            if (x){
-                x.style.display = "block";
-            } 
+            function cancelarEdicionUser(id) {
+                let fila = document.getElementById('fila-user-' + id);
+                fila.querySelectorAll('.txt-u').forEach(el => el.style.display = 'block');
+                fila.querySelectorAll('.inp-u').forEach(el => el.style.display = 'none');
+                fila.querySelector('.modo-vista-user').style.display = 'block';
+                fila.querySelector('.modo-editar-user').style.display = 'none';
+            }
+            function guardarEdicionUser(id) {
+                let fila = document.getElementById('fila-user-' + id);
+                let nuevoDni = fila.querySelector('.celda-user-dni .inp-u').value;
+                let nuevaClave = fila.querySelector('.celda-user-clave .inp-u').value;
+                let nuevoNombre = fila.querySelector('.celda-user-nombre .inp-u').value;
+                let nuevoApellido = fila.querySelector('.celda-user-apellido .inp-u').value;
+                
+                if(nuevoDni.trim() === "" || nuevoNombre.trim() === "" || nuevoApellido.trim() === "") {
+                    alert("Por favor, no dejes campos obligatorios vacíos.");
+                    return;
+                }
+
+                let datos = new FormData();
+                datos.append('id', id);
+                datos.append('dni', nuevoDni);
+                datos.append('clave', nuevaClave);
+                datos.append('nombre', nuevoNombre);
+                datos.append('apellido', nuevoApellido);
+
+                fetch('modificar_usuario.php', {
+                    method: 'POST',
+                    body: datos
+                })
+                .then(res => res.text())
+                .then(data => {
+                    if(data.trim() === "success") {
+                        window.location.reload();
+                    } else {
+                        alert("Error al actualizar el usuario: " + data);
+                    }
+                });
+            }
+        </script>
+    </div>
+
+        <script>
+        // Función para abrir y cerrar las pestañas del menú de gestión
+        function togglePanel(idPanel) {
+            // Escondemos todos los paneles primero
+            document.querySelectorAll('.panel-desplegable').forEach(panel => {
+                panel.style.display = 'none';
+            });
+            // Mostramos únicamente el panel seleccionado
+            let panelActivo = document.getElementById(idPanel);
+            if (panelActivo) {
+                panelActivo.style.display = 'block';
+            }
         }
-    </script>
-    <a href="cerrar_sesionpro.php" class="boton-cerrar-sesion">Cerrar sesion</a>
+
+        // Lógica de los desplegables dinámicos (Especialidad -> Profesional)
+        document.getElementById('select-especialidad').addEventListener('change', function() {
+            var especialidadId = this.value;
+            var selectProfesional = document.getElementById('select-profesional');
+            
+            // Limpiamos el desplegable de médicos
+            selectProfesional.innerHTML = '<option value="">--Seleccione un profesional--</option>';
+            
+            if (especialidadId === "") {
+                selectProfesional.disabled = true;
+                return;
+            }
+            
+            // Llamamos por Fetch pasándole la especialidad elegida
+            fetch('obtener_medicos.php?especialidad_id=' + especialidadId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        // Recorremos los médicos recibidos del JSON y los metemos en el select
+                        data.forEach(medico => {
+                            var option = document.createElement('option');
+                            option.value = medico.id;
+                            option.textContent = medico.nombre;
+                            selectProfesional.appendChild(option);
+                        });
+                        selectProfesional.disabled = false; // Desbloqueamos el select
+                    } else {
+                        selectProfesional.innerHTML = '<option value="">No hay profesionales en esta área</option>';
+                        selectProfesional.disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar médicos:', error);
+                });
+        });
+        </script>
+    <a href="cerrar_sesionpro.php" class="boton-cerrar-sesion">Cerrar sesión</a>
 </body>
 </html>

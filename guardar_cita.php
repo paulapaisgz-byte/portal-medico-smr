@@ -1,49 +1,41 @@
-<!--NUMERO 6-->
 <?php
-session_start();  // 1. Incluimos la conexión que hiciste antes
+session_start();
 include("conexion_bd.php");
 
-// 2. Recogemos los datos del formulario
-$medico    = $_POST['nombre_medico'] ?? '';
-$dni       = $_POST['dni_manual'] ?? $_POST['dni'] ?? '';
-$fecha     = $_POST['fecha'] ?? '';
-$hora      = $_POST['hora'] ?? '';
-$nombres   = $_POST['nombres_manual'] ?? $_POST['nombres'] ?? '';
-$apellidos = $_POST['apellidos_manual'] ?? $_POST['apellidos'] ?? '';
-
-// --- TRUCO DE CONTROL DE RELACIONES ---
-// Buscamos si el DNI escrito ya tiene un ID numérico en la tabla 'usuarios'
-$consulta_usuario = "SELECT `id` FROM `usuarios` WHERE `dni` = '$dni'";
-$resultado_usuario = mysqli_query($conexion, $consulta_usuario);
-
-if (mysqli_num_rows($resultado_usuario) > 0) {
-    // Si ya existe, nos guardamos su ID numérico real
-    $fila_u = mysqli_fetch_assoc($resultado_usuario);
-    $id_enlace = $fila_u['id'];
-} else {
-    // Si el paciente es nuevo, lo creamos primero en la tabla 'usuarios'
-    // Le asignamos la clave provisional '1234'
-    $insertar_usuario = "INSERT INTO `usuarios` (`dni`, `nombre`, `apellido`, `clave`) 
-                         VALUES ('$dni', '$nombres', '$apellidos', '1234')";
-    mysqli_query($conexion, $insertar_usuario);
+if (isset($_POST['profesional_id']) && isset($_POST['dni_paciente']) && isset($_POST['fecha']) && isset($_POST['hora'])) {
     
-    // Nos quedamos con la ID que se le acaba de asignar automáticamente
-    $id_enlace = mysqli_insert_id($conexion);
-}
-// --------------------------------------
+    $profesional_id = intval($_POST['profesional_id']);
+    $dni_paciente = mysqli_real_escape_string($conexion, trim($_POST['dni_paciente']));
+    $fecha = mysqli_real_escape_string($conexion, $_POST['fecha']);
+    $hora = mysqli_real_escape_string($conexion, $_POST['hora']);
 
-// 3. Preparamos la orden SQL para insertar (CORREGIDA CON TUS COLUMNAS REALES)
-$sql = "INSERT INTO citas (nombre_medico, fecha, hora, DNI, nombres, apellidos) 
-        VALUES ('$medico', '$fecha', '$hora', '$id_enlace', '$nombres', '$apellidos')";
+    $sql_usuario = "SELECT `id` FROM `usuarios` WHERE `dni` = '$dni_paciente'";
+    $res_usuario = mysqli_query($conexion, $sql_usuario);
 
-// 4. Ejecutamos la orden
-if (mysqli_query($conexion, $sql)) {
-    echo "<h2>¡Cita guardada con éxito!</h2>";
-    echo "<a href='panel_profesional.php'> Volver atrás </a>";
+    if ($res_usuario && mysqli_num_rows($res_usuario) > 0) {
+        $fila_user = mysqli_fetch_assoc($res_usuario);
+        $usuario_id = $fila_user['id'];
+
+        $sql_insertar = "INSERT INTO `citas` (`fecha`, `hora`, `usuario_id`, `profesional_id`) 
+                         VALUES ('$fecha', '$hora', $usuario_id, $profesional_id)";
+        
+        if (mysqli_query($conexion, $sql_insertar)) {
+            echo "<script>
+                    alert('Cita registrada con éxito total.');
+                    window.location.href = 'panel_profesional.php'; 
+                  </script>";
+        } else {
+            echo "Error al registrar la cita: " . mysqli_error($conexion);
+        }
+
+    } else {
+        echo "<script>
+                alert('Error: El DNI introducido ($dni_paciente) no corresponde a ningún usuario registrado. Regístralo primero en la pestaña Usuario.');
+                window.history.back();
+              </script>";
+    }
+
 } else {
-    echo "Error al guardar la cita: " . mysqli_error($conexion);
+    echo "Faltan datos obligatorios en el formulario.";
 }
-
-// 5. Cerramos la conexión
-mysqli_close($conexion);
 ?>
