@@ -1,0 +1,35 @@
+/* 1. Centra y alinea horizontalmente */
+.contenedor {
+    display: flex;
+    flex-direction: row; /* Los pone uno al lado del otro */
+    justify-content: center; /* Los centra horizontalmente en la pantalla */
+    align-items: center; /* Los centra verticalmente */
+    height: 100vh; /* Opcional: centra todo en el medio de la pantalla */
+    gap: 30px;
+}
+
+/* 2. Estilo de los botones cuadrados y redondeados */
+.boton {
+    display: inline-block;
+    text-decoration: none; /* Quita el subrayado del enlace */
+    background-color: #3498db; /* Un azul agradable */
+    color: white;
+    padding: 20px 40px; /* Tamaño del "cuadrado" */
+    border-radius: 15px; /* Aquí controlas la redondez de las esquinas */
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+    transition: background 0.3s; /* Para que brille al pasar el mouse */
+    
+}
+
+/* 3. Efecto al pasar el mouse */
+.boton:hover {
+    background-color: #2980b9;
+}
+body{
+    background-image: url('portalimagen.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+}
