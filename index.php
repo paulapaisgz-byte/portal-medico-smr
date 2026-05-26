@@ -1,12 +1,17 @@
+<!--NUMERO 2-->
 <!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><title>Login</title></head>
+<meta charset="UTF-8">
+<head>
+    <link href="estilos.css?v=1.1" type="text/css" rel="stylesheet">
+    <title>Acceso</title>
+</head>
 <body>
-    <h2>IDENTIFICACIÓN DE USUARIO</h2>
-    <form action="validar.php" method="POST">
-        <p>DNI: <input type="text" name="dni" required></p>
-        <p>Clave: <input type="password" name="clave" required></p>
-        <button type="submit">ENTRAR</button>
-    </form>
+
+    <div class="contenedor">
+        <a href="iniciar_sesion.php" class="boton">CLIENTE</a>
+        <br><br><br>
+        <a href="profesional.php" class="boton">ADMINISTRADOR</a>
+    </div>
 </body>
 </html>

@@ -1,25 +1,41 @@
 <?php
-// 1. Incluimos la conexión que hiciste antes
-include ('funciones/conexion.php');
+session_start();
+include("conexion_bd.php");
 
-// 2. Recogemos los datos del formulario
-$medico = $_POST['medico'];
-$fecha = $_POST['fecha'];
-$hora = $_POST['hora'];
-$usuario_id = 1; // Ponemos 1 de momento para probar
+if (isset($_POST['profesional_id']) && isset($_POST['dni_paciente']) && isset($_POST['fecha']) && isset($_POST['hora'])) {
+    
+    $profesional_id = intval($_POST['profesional_id']);
+    $dni_paciente = mysqli_real_escape_string($conexion, trim($_POST['dni_paciente']));
+    $fecha = mysqli_real_escape_string($conexion, $_POST['fecha']);
+    $hora = mysqli_real_escape_string($conexion, $_POST['hora']);
 
-// 3. Preparamos la orden SQL para insertar
-$sql = "INSERT INTO citas (nombre_medico, fecha, hora, usuario_id) 
-        VALUES ('$medico', '$fecha', '$hora', '$usuario_id')";
+    $sql_usuario = "SELECT `id` FROM `usuarios` WHERE `dni` = '$dni_paciente'";
+    $res_usuario = mysqli_query($conexion, $sql_usuario);
 
-// 4. Ejecutamos la orden
-if (mysqli_query($conexion, $sql)) {
-    echo "<h2>¡Cita guardada con éxito!</h2>";
-    echo "<a href='portal.php'>Volver atrás</a>";
+    if ($res_usuario && mysqli_num_rows($res_usuario) > 0) {
+        $fila_user = mysqli_fetch_assoc($res_usuario);
+        $usuario_id = $fila_user['id'];
+
+        $sql_insertar = "INSERT INTO `citas` (`fecha`, `hora`, `usuario_id`, `profesional_id`) 
+                         VALUES ('$fecha', '$hora', $usuario_id, $profesional_id)";
+        
+        if (mysqli_query($conexion, $sql_insertar)) {
+            echo "<script>
+                    alert('Cita registrada con éxito total.');
+                    window.location.href = 'panel_profesional.php'; 
+                  </script>";
+        } else {
+            echo "Error al registrar la cita: " . mysqli_error($conexion);
+        }
+
+    } else {
+        echo "<script>
+                alert('Error: El DNI introducido ($dni_paciente) no corresponde a ningún usuario registrado. Regístralo primero en la pestaña Usuario.');
+                window.history.back();
+              </script>";
+    }
+
 } else {
-    echo "Error al guardar la cita: " . mysqli_error($conexion);
+    echo "Faltan datos obligatorios en el formulario.";
 }
-
-// 5. Cerramos la conexión
-mysqli_close($conexion);
 ?>

@@ -1,0 +1,147 @@
+/* ==========================================================================
+   1. ESTILOS ORIGINALES DE TU WEB (panel.css)
+   ========================================================================== */
+body {
+    background-color: #a5c9ca; /* Color de respaldo */
+    background-size: cover;
+    background-attachment: fixed;
+    background-image: none; 
+}
+
+h1 {
+    display: block;
+    color: white;
+    background-color: lightgreen;
+    font-family: Arial;
+    text-align: center;
+    padding: 40px;
+}
+
+.menu-gestion {
+    background-color: lightgray;
+    margin: 0;
+    padding: 10px;
+    text-align: center;
+}
+
+#panel {
+    cursor: auto;
+}
+
+.menu-gestion li {
+    display: inline-block;
+    font-size: 18px;
+    padding: 15px;
+    margin-top: 0;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+    margin: 0;
+}
+
+a.ex1:hover, a.ex1:active {
+    font-size: 110%;
+}
+
+/* Corregido: Quitamos el display block para que JS controle la apertura */
+.panel-desplegable {
+    padding: 20px;
+    text-align: center;
+    background-color: #04AA6D;
+    border: 2px solid #a6d8a8;
+    margin: 10px auto;
+    width: 80%;
+}
+
+
+/* ==========================================================================
+   2. NUEVOS ESTILOS PARA EL CONTENIDO INTERNO DE LOS PANELES
+   ========================================================================== */
+
+/* Estilos Generales para las Tablas del Panel */
+.tabla-panel {
+    width: 100%; 
+    border-collapse: collapse; 
+    background-color: white; 
+    color: black;
+}
+
+.tabla-panel th {
+    background-color: #eee;
+    padding: 10px;
+}
+
+.tabla-panel td {
+    padding: 10px;
+}
+
+.tabla-panel .centrado {
+    text-align: center;
+}
+
+/* Enlaces de acciones específicas */
+.enlace-modificar {
+    color: blue !important; /* !important asegura que no se queden negros por la regla general de 'a' */
+}
+
+.enlace-eliminar {
+    color: red !important;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* Estilos para los Formularios del Panel */
+.formulario-panel {
+    background: white; 
+    padding: 20px; 
+    color: black; 
+    display: inline-block; 
+    border-radius: 8px;
+}
+
+.formulario-panel.ancho-fijo {
+    width: 300px;
+}
+
+.input-panel {
+    width: 100%; 
+    padding: 8px; 
+    margin: 10px 0;
+    box-sizing: border-box; 
+}
+
+.boton-panel {
+    background-color: #04AA6D; 
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.boton-panel.ancho-total {
+    width: 100%;
+}
+
+/* Contenedores y separadores internos */
+.bloque-formulario {
+    margin-bottom: 30px;
+}
+
+.linea-separadora {
+    border: 0; 
+    height: 1px; 
+    background: #ccc; 
+    margin: 20px 0;
+}
+
+.texto-vacio {
+    text-align: center; 
+    color: gray;
+}
+.boton-cerrar-sesion {
+    color: red; 
+    font-weight: bold;
+}
